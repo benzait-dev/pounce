@@ -26,6 +26,9 @@ struct ScanReport {
     // Windows that are on screen but expose no accessibility tree, by class,
     // so the overlay can say which apps need `pounce setup` or a restart.
     QStringList inaccessible;
+    // The subset of those that were started before accessibility was on, by
+    // class, and need to be quit and opened again.
+    QStringList restart;
     int nodes = 0;
     qint64 milliseconds = 0;
     bool timedOut = false;

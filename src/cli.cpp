@@ -189,6 +189,7 @@ int list(const QStringList &arguments) {
             elements.append(toJson(report.elements[r.index], &r));
         out() << QJsonDocument(QJsonObject{{"elements", elements},
                                            {"inaccessible", QJsonArray::fromStringList(report.inaccessible)},
+                                           {"restart", QJsonArray::fromStringList(report.restart)},
                                            {"milliseconds", report.milliseconds},
                                            {"nodes", report.nodes},
                                            {"timedOut", report.timedOut}})
@@ -213,7 +214,10 @@ int list(const QStringList &arguments) {
                  .arg(report.nodes)
                  .arg(report.milliseconds)
                  .arg(report.timedOut ? " (timed out)" : "");
-    if (!report.inaccessible.isEmpty())
+    if (!report.restart.isEmpty())
+        err() << report.restart.join(", ")
+              << " was started before accessibility was switched on; quit it completely and open it again.\n";
+    else if (!report.inaccessible.isEmpty())
         err() << "No accessibility tree from: " << report.inaccessible.join(", ") << " (see `pounce doctor`)\n";
     return 0;
 }
@@ -346,11 +350,12 @@ int doctor(const QStringList &arguments) {
                                 : "Chromium only builds its accessibility tree when started with " + ChromiumFlag + ".",
                    chromiumFlag ? QString() : "Run pounce setup, then restart Chromium."});
 
-    QStringList inaccessible;
+    QStringList inaccessible, restartNeeded;
     int elements = 0;
     if (hypr && bus) {
         const ScanReport report = scan(true, Hyprland::state(), Config::load());
         inaccessible = report.inaccessible;
+        restartNeeded = report.restart;
         elements = int(report.elements.size());
         checks.append({"windows", inaccessible.isEmpty(),
                        inaccessible.isEmpty()
@@ -358,8 +363,12 @@ int doctor(const QStringList &arguments) {
                                  .arg(elements).arg(report.milliseconds)
                            : QStringLiteral("No accessibility tree from: %1.").arg(inaccessible.join(", ")),
                        inaccessible.isEmpty() ? QString()
-                                              : "Run pounce setup, then restart those apps. Terminals and games "
-                                                "never have one."});
+                       : !restartNeeded.isEmpty()
+                           ? QStringLiteral("%1 was started before accessibility was switched on. Quit it "
+                                            "completely (every window) and open it again.")
+                                 .arg(restartNeeded.join(", "))
+                           : QStringLiteral("Run pounce setup, then restart those apps. Terminals and games "
+                                            "never have one.")});
     }
 
     bool allOk = true;
@@ -403,13 +412,30 @@ int setup(const QStringList &arguments) {
             failed << "gsettings couldn't save toolkit-accessibility.";
     }
 
-    for (const QString &name : {QStringLiteral("chromium-flags.conf"), QStringLiteral("electron-flags.conf")}) {
+    // Arch's Chromium and system Electron read the first two. Apps that
+    // bundle their own Electron read a file named after themselves, when
+    // their launcher reads one at all.
+    struct FlagsFile {
+        QString name;
+        QString launcher;
+        QString app;
+    };
+    const QList<FlagsFile> flagFiles{
+        {"chromium-flags.conf", {}, "Chromium"},
+        {"electron-flags.conf", {}, "Electron apps"},
+        {"claude-desktop-flags.conf", "claude-desktop", "Claude"},
+        {"codex-flags.conf", "chatgpt", "ChatGPT"},
+    };
+    for (const FlagsFile &flags : flagFiles) {
+        if (!flags.launcher.isEmpty() && QStandardPaths::findExecutable(flags.launcher).isEmpty())
+            continue;
+        const QString &name = flags.name;
         const QString path = flagsFile(name);
         if (fileHasLine(path, ChromiumFlag)) {
             done << QStringLiteral("%1 already has %2.").arg(name, ChromiumFlag);
         } else if (appendLine(path, ChromiumFlag, &error)) {
             done << QStringLiteral("Added %1 to %2.").arg(ChromiumFlag, path);
-            restart << (name.startsWith("chromium") ? "Chromium" : "Electron apps");
+            restart << flags.app;
         } else {
             failed << QStringLiteral("Couldn't write %1: %2").arg(path, error);
         }

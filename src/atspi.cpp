@@ -5,6 +5,8 @@
 #include <QDBusMetaType>
 #include <QDBusReply>
 #include <QDBusVariant>
+#include <QFile>
+#include <QFileInfo>
 
 QDBusArgument &operator<<(QDBusArgument &argument, const ObjRef &ref) {
     argument.beginStructure();
@@ -159,6 +161,21 @@ int contextMenuAction(const QStringList &actions) {
             if (actions[i].compare(want, Qt::CaseInsensitive) == 0)
                 return i;
     return -1;
+}
+
+bool startedWithoutTree(int pid) {
+    if (pid <= 0)
+        return false;
+    const QString proc = QStringLiteral("/proc/%1").arg(pid);
+    // Every Chromium build, Electron included, ships resources.pak beside
+    // its binary; nothing else does.
+    const QFileInfo exe(QFileInfo(proc + "/exe").symLinkTarget());
+    if (!QFileInfo::exists(exe.absolutePath() + "/resources.pak"))
+        return false;
+    QFile cmdline(proc + "/cmdline");
+    if (!cmdline.open(QIODevice::ReadOnly))
+        return false;
+    return !cmdline.readAll().split('\0').contains("--force-renderer-accessibility");
 }
 
 }

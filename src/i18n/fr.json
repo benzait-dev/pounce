@@ -50,5 +50,6 @@
   "text;label": "texte;étiquette",
   "Toggle": "Interrupteur",
   "UPPERCASE label": "Étiquette en MAJUSCULES",
-  "Window": "Fenêtre"
+  "Window": "Fenêtre",
+  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 a été ouvert avant l’activation de l’accessibilité. Quittez-le complètement, puis rouvrez-le."
 }

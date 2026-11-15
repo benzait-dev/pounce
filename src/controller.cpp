@@ -28,6 +28,7 @@ void Controller::show(bool hints) {
     m_model.set({}, {});
     m_error.clear();
     m_inaccessible.clear();
+    m_restart.clear();
     m_panelSlot = 0;
     emit panelSlotChanged();
 
@@ -103,9 +104,11 @@ void Controller::scanned(const ScanReport &report) {
 
     m_elements = report.elements;
     m_inaccessible.clear();
+    m_restart.clear();
     for (const QString &cls : report.inaccessible)
         if (!Hyprland::isTerminalClass(cls))
             m_inaccessible.append(cls);
+    m_restart = report.restart;
     m_scanMilliseconds = report.milliseconds;
     m_error.clear();
     if (!report.error.isEmpty() && report.elements.isEmpty())
@@ -230,6 +233,7 @@ void Controller::preview(const Elements &elements, const QString &query) {
     m_scanner.cancel();
     m_elements = elements;
     m_inaccessible.clear();
+    m_restart.clear();
     m_error.clear();
     m_query = query;
     m_parsed = Ranker::Query::parse(query);

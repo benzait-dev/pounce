@@ -216,8 +216,11 @@ Rectangle {
                 Text {
                     Layout.fillWidth: true
                     visible: backend.inaccessible.length > 0 && backend.error.length === 0
-                    text: qsTr("%1 isn't sharing its interface. Run %2, then restart it.")
-                              .arg(backend.inaccessible.join(", ")).arg("<b>pounce setup</b>")
+                    text: backend.restart.length > 0
+                          ? qsTr("%1 was opened before accessibility was switched on. Quit it completely and open it again.")
+                                .arg(backend.restart.join(", "))
+                          : qsTr("%1 isn't sharing its interface. Run %2, then restart it.")
+                                .arg(backend.inaccessible.join(", ")).arg("<b>pounce setup</b>")
                     textFormat: Text.StyledText
                     wrapMode: Text.WordWrap
                     color: theme.muted

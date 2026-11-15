@@ -37,6 +37,11 @@ class PounceTests : public QObject {
     Q_OBJECT
 
 private slots:
+    void staleChromiumDetection() {
+        // This test binary isn't Chromium, and there's no process 0.
+        QVERIFY(!Atspi::startedWithoutTree(int(QCoreApplication::applicationPid())));
+        QVERIFY(!Atspi::startedWithoutTree(0));
+    }
     // Matching
 
     void exactBeatsPrefixBeatsWordBeatsScattered() {

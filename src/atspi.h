@@ -81,4 +81,10 @@ bool grabFocus(const ObjRef &ref, QString *error = nullptr);
 int primaryAction(const QStringList &actions, bool editable);
 int contextMenuAction(const QStringList &actions);
 
+// Chromium and Electron decide once, at launch, whether to build an
+// accessibility tree. True when `pid` is one of them and it was started
+// without --force-renderer-accessibility, so only quitting it and opening it
+// again will help.
+bool startedWithoutTree(int pid);
+
 }

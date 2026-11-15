@@ -50,5 +50,6 @@
   "text;label": "texto;rótulo",
   "Toggle": "Interruptor",
   "UPPERCASE label": "Rótulo em MAIÚSCULAS",
-  "Window": "Janela"
+  "Window": "Janela",
+  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 foi aberto antes de a acessibilidade ser ativada. Feche-o por completo e abra-o novamente."
 }

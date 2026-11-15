@@ -32,6 +32,7 @@ class Controller : public QObject {
     Q_PROPERTY(QString searchText READ searchText NOTIFY resultsChanged)
     Q_PROPERTY(bool hintsReady READ hintsReady NOTIFY resultsChanged)
     Q_PROPERTY(QStringList inaccessible READ inaccessible NOTIFY statusChanged)
+    Q_PROPERTY(QStringList restart READ restart NOTIFY statusChanged)
     Q_PROPERTY(QString error READ error NOTIFY statusChanged)
     Q_PROPERTY(qint64 scanMilliseconds READ scanMilliseconds NOTIFY statusChanged)
     Q_PROPERTY(double dim READ dim NOTIFY openChanged)
@@ -57,6 +58,7 @@ public:
     QString searchText() const { return m_parsed.search.trimmed(); }
     bool hintsReady() const { return !m_scanner.running(); }
     QStringList inaccessible() const { return m_inaccessible; }
+    QStringList restart() const { return m_restart; }
     QString error() const { return m_error; }
     qint64 scanMilliseconds() const { return m_scanMilliseconds; }
     double dim() const { return m_config.dim; }
@@ -117,6 +119,7 @@ private:
     bool m_open = false;
     QString m_focusedMonitor;
     QStringList m_inaccessible;
+    QStringList m_restart;
     QString m_error;
     qint64 m_scanMilliseconds = 0;
     int m_panelSlot = 0;

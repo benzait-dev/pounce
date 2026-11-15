@@ -571,8 +571,11 @@ void Scanner::finish(bool timedOut) {
         // register with the bus but leave the tree empty until asked to build
         // it at launch.
         if ((m_targetFrame[t] < 0 || m_targetNodes[t] == 0) && !withElements.contains(window.address)
-            && !report.inaccessible.contains(window.cls))
+            && !report.inaccessible.contains(window.cls)) {
             report.inaccessible.append(window.cls);
+            if (Atspi::startedWithoutTree(window.pid))
+                report.restart.append(window.cls);
+        }
     }
 
     cancel();
