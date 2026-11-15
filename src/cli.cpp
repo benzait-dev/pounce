@@ -81,7 +81,7 @@ Options parse(const QStringList &arguments) {
     return options;
 }
 
-ScanReport scan(bool screen, const HyprState &state, const Config &config, const QString &address = {}) {
+ScanReport scanOnce(bool screen, const HyprState &state, const Config &config, const QString &address) {
     QList<ScanTarget> targets;
     // A window named by address is read even when it isn't on screen, so a
     // script can work in a window on another workspace.
@@ -109,6 +109,23 @@ ScanReport scan(bool screen, const HyprState &state, const Config &config, const
     scanner.start(targets, config.scanTimeoutMs);
     if (scanner.running())
         loop.exec();
+    return report;
+}
+
+// The focused window is usually the terminal pounce was run from, which has
+// nothing to click; then the rest of the screen is what was meant.
+ScanReport scan(bool screen, const HyprState &state, const Config &config, const QString &address = {}) {
+    ScanReport report = scanOnce(screen, state, config, address);
+    if (!screen && address.isEmpty() && report.elements.isEmpty()) {
+        const HyprWindow *active = state.active();
+        if (!active || Hyprland::isTerminalClass(active->cls) || report.inaccessible.contains(active->cls))
+            report = scanOnce(true, state, config, address);
+    }
+    QStringList relevant;
+    for (const QString &cls : report.inaccessible)
+        if (!Hyprland::isTerminalClass(cls))
+            relevant.append(cls);
+    report.inaccessible = relevant;
     return report;
 }
 

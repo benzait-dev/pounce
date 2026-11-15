@@ -174,3 +174,9 @@ bool Hyprland::focusWindow(const QString &address) {
         request("dispatch hl.dsp.focus({ window = \"address:" + address.toLatin1() + "\" })");
     return reply.trimmed() == "ok";
 }
+
+bool Hyprland::isTerminalClass(const QString &cls) {
+    static const QStringList terminals{"foot", "footclient", "alacritty", "kitty", "com.mitchellh.ghostty",
+                                       "org.wezfurlong.wezterm", "xterm", "st", "org.gnome.ptyxis", "warp"};
+    return terminals.contains(cls.toLower()) || cls.contains("terminal", Qt::CaseInsensitive);
+}

@@ -70,4 +70,8 @@ public:
     static QPointF cursor();
 
     static bool focusWindow(const QString &address);
+
+    // Terminals never have an accessibility tree, so there's nothing to fix
+    // and no reason to mention them.
+    static bool isTerminalClass(const QString &cls);
 };

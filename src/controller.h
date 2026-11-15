@@ -120,4 +120,5 @@ private:
     QString m_error;
     qint64 m_scanMilliseconds = 0;
     int m_panelSlot = 0;
+    bool m_fellBack = false;
 };

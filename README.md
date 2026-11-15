@@ -74,11 +74,11 @@ Then bind it in `~/.config/hypr/bindings.lua`:
 
 ```lua
 o.bind("SUPER + SEMICOLON", "Pounce", "pounce")
-o.bind("SUPER SHIFT + SEMICOLON", "Pounce labels", "pounce hints")
+o.bind("SUPER + SHIFT + SEMICOLON", "Pounce labels", "pounce hints")
 ```
 
 The first press starts pounce in the background. To have it ready from login,
-add `hl.exec_cmd("pounce daemon")` to `~/.config/hypr/autostart.lua`.
+add `o.exec_on_start("pounce daemon")` to `~/.config/hypr/autostart.lua`.
 
 ### Which apps work
 

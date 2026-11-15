@@ -14,12 +14,13 @@ Controller::Controller(QObject *parent) : QObject(parent) {
 
 void Controller::show(bool hints) {
     m_config = Config::load();
-    if (!m_open)
-        m_scope = m_config.scope;
+    m_scope = m_config.scope;
+    emit scopeChanged();
     m_state = Hyprland::state();
     if (const HyprMonitor *monitor = m_state.focusedMonitor())
         m_focusedMonitor = monitor->name;
 
+    m_fellBack = false;
     m_query = hints ? QStringLiteral(";") : QString();
     m_parsed = Ranker::Query::parse(m_query);
     m_selected = 0;
@@ -89,8 +90,22 @@ void Controller::startScan() {
 }
 
 void Controller::scanned(const ScanReport &report) {
+    // The focused window had nothing to offer (a terminal, usually): look at
+    // the rest of the screen instead of showing an empty list.
+    if (report.elements.isEmpty() && m_scope == Config::Scope::Window && m_open && !m_fellBack
+        && m_state.visibleWindows().size() > 1) {
+        m_fellBack = true;
+        m_scope = Config::Scope::Screen;
+        emit scopeChanged();
+        startScan();
+        return;
+    }
+
     m_elements = report.elements;
-    m_inaccessible = report.inaccessible;
+    m_inaccessible.clear();
+    for (const QString &cls : report.inaccessible)
+        if (!Hyprland::isTerminalClass(cls))
+            m_inaccessible.append(cls);
     m_scanMilliseconds = report.milliseconds;
     m_error.clear();
     if (!report.error.isEmpty() && report.elements.isEmpty())

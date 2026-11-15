@@ -8,6 +8,7 @@
 
 #include "atspi.h"
 #include "config.h"
+#include "controller.h"
 #include "geometry.h"
 #include "history.h"
 #include "hyprland.h"
@@ -244,6 +245,31 @@ private slots:
         QCOMPARE(visible[0].address, QString("0x4")); // Most recently focused first.
         QCOMPARE(visible[1].address, QString("0x1"));
         QCOMPARE(state.layoutBounds(), QRectF(0, 0, 1920, 1080));
+    }
+
+    void terminalsAreRecognised() {
+        QVERIFY(Hyprland::isTerminalClass("foot"));
+        QVERIFY(Hyprland::isTerminalClass("Alacritty"));
+        QVERIFY(Hyprland::isTerminalClass("org.gnome.Terminal"));
+        QVERIFY(!Hyprland::isTerminalClass("chromium"));
+    }
+
+    void panelMovesAwayFromCrowdedAreas() {
+        const QRectF monitor(0, 0, 1920, 1080);
+        QCOMPARE(Controller::choosePanelSlot({}, monitor), 0);
+        Elements crowdedTop;
+        for (int i = 0; i < 6; ++i)
+            crowdedTop.append(element("x", i));
+        for (Element &e : crowdedTop)
+            e.rect = QRectF(700 + e.order * 40, 200, 30, 30);
+        QCOMPARE(Controller::choosePanelSlot(crowdedTop, monitor), 1);
+        for (Element &e : crowdedTop)
+            e.rect.moveTop(500); // Under both the top and middle places.
+        QCOMPARE(Controller::choosePanelSlot(crowdedTop, monitor), 2);
+        // One element of another window in the way isn't worth moving for.
+        Elements one{element("x", 0, false)};
+        one[0].rect = QRectF(900, 200, 30, 30);
+        QCOMPARE(Controller::choosePanelSlot(one, monitor), 0);
     }
 
     // Accessibility actions
