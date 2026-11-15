@@ -150,7 +150,9 @@ void Controller::setQuery(const QString &query) {
 void Controller::refresh() {
     const QDateTime now = QDateTime::currentDateTimeUtc();
     const auto boost = [this, &now](const Element &element) { return m_history.boost(element.key(), now); };
-    QList<Ranker::Ranked> ranked = Ranker::rank(m_elements, m_parsed.search, m_config.hintAlphabet, boost);
+    // Every element stays rankable (no limit) so its label always reaches it.
+    QList<Ranker::Ranked> ranked = Ranker::rank(m_elements, m_parsed.search, m_config.hintAlphabet, boost,
+                                                int(m_elements.size()), !m_parsed.hintMode);
 
     // While a label is being typed, only the elements it can still reach
     // stay listed.
@@ -166,6 +168,13 @@ void Controller::refresh() {
         m_selected = std::max(0, m_model.rowCount() - 1);
     emit resultsChanged();
     emit selectedChanged();
+}
+
+QString Controller::hintTyped() const {
+    if (m_parsed.hintMode)
+        return m_parsed.hint;
+    return Ranker::looksLikeLabel(m_parsed.search, m_config.hintAlphabet) ? m_parsed.search.trimmed().toLower()
+                                                                          : QString();
 }
 
 void Controller::setSelected(int row) {

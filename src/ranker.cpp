@@ -21,16 +21,35 @@ Query Query::parse(const QString &text) {
     return query;
 }
 
+bool looksLikeLabel(const QString &search, const QString &alphabet) {
+    const QString lower = search.trimmed().toLower();
+    if (lower.isEmpty())
+        return false;
+    for (const QChar c : lower)
+        if (!alphabet.contains(c))
+            return false;
+    return true;
+}
+
 QList<Ranked> rank(const Elements &elements, const QString &search, const QString &alphabet, const Boost &boost,
-                   int limit) {
+                   int limit, bool matchLabels) {
     const QString trimmed = search.trimmed();
+    const QStringList labels = Matcher::hints(int(elements.size()), alphabet);
+    const QString typedLabel = matchLabels && looksLikeLabel(trimmed, alphabet) ? trimmed.toLower() : QString();
+    // Far outside any text score, so label hits sort first or last.
+    constexpr double ExactLabel = 1e6, LabelOnly = -1e6;
+
     QList<Ranked> ranked;
     ranked.reserve(elements.size());
     for (int i = 0; i < elements.size(); ++i) {
         const Element &element = elements[i];
         Ranked entry;
         entry.index = i;
-        if (!trimmed.isEmpty()) {
+        entry.hint = labels.value(i);
+        const bool labelHit = !typedLabel.isEmpty() && entry.hint.startsWith(typedLabel);
+        if (labelHit && entry.hint == typedLabel) {
+            entry.score = ExactLabel;
+        } else if (!trimmed.isEmpty()) {
             if (auto hit = Matcher::match(trimmed, element.name)) {
                 entry.score = hit->score;
                 entry.positions = hit->positions;
@@ -43,6 +62,9 @@ QList<Ranked> rank(const Elements &elements, const QString &search, const QStrin
                 // A tooltip-style description that matches well, with no
                 // highlight since the label shown is the name.
                 entry.score = described->score - 150;
+            } else if (labelHit) {
+                // Kept on screen while its label is still being typed.
+                entry.score = LabelOnly;
             } else {
                 continue;
             }
@@ -67,9 +89,6 @@ QList<Ranked> rank(const Elements &elements, const QString &search, const QStrin
 
     if (ranked.size() > limit)
         ranked.resize(limit);
-    const QStringList labels = Matcher::hints(int(ranked.size()), alphabet);
-    for (int i = 0; i < ranked.size() && i < labels.size(); ++i)
-        ranked[i].hint = labels[i];
     return ranked;
 }
 

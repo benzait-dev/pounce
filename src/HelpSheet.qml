@@ -24,6 +24,7 @@ Item {
                 ["Alt+Enter", qsTr("Move the pointer there")],
                 ["↑ ↓  Tab  Ctrl+N/P", qsTr("Move the selection")],
                 ["Alt+1…9", qsTr("Click result 1 to 9")],
+                [qsTr("label, Enter"), qsTr("Select a labelled element, then click it")],
                 [";", qsTr("Label everything; type a label to click it")],
                 [qsTr("text;label"), qsTr("Label only what matches the text")],
                 [qsTr("UPPERCASE label"), qsTr("Right-click by label")],

@@ -51,5 +51,7 @@
   "Toggle": "Interruptor",
   "UPPERCASE label": "Rótulo em MAIÚSCULAS",
   "Window": "Janela",
-  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 foi aberto antes de a acessibilidade ser ativada. Feche-o por completo e abra-o novamente."
+  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 foi aberto antes de a acessibilidade ser ativada. Feche-o por completo e abra-o novamente.",
+  "label, Enter": "rótulo, Enter",
+  "Select a labelled element, then click it": "Selecione um elemento pelo rótulo e clique nele"
 }

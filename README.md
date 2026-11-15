@@ -14,9 +14,11 @@ and Hyprland.
 - **Search by name.** Fuzzy matching is tuned for UI labels. `sa` finds
   *Save As* by its initials, `new tab` finds *Open new tab*, and `reglages`
   finds *Réglages*. Exact and prefix matches always rank first.
-- **Labels, Vimium-style.** Type `;` and every element gets a short
-  home-row label; type the label to click it. `save;s` labels only what
-  matches "save". Type a label in UPPERCASE to right-click instead.
+- **Labels, Vimium-style.** Every element gets a short home-row label that
+  stays put while you search. Type a label and press Enter to click it, or
+  type `;` first and the label clicks as soon as it's complete. `save;s`
+  labels only what matches "save". Type a label in UPPERCASE after `;` to
+  right-click instead.
 - **Clicks without moving the mouse.** A plain click goes through the
   widget's own accessibility action, so the pointer stays put and it works on
   windows that are partly covered. Right, middle, and double clicks, hovering,
@@ -51,6 +53,7 @@ and Hyprland.
 | Alt+Enter | Move the pointer there |
 | ↑ ↓, Tab, Ctrl+N/P, Ctrl+J/K | Move the selection |
 | Alt+1…9 | Click result 1 to 9 |
+| A label, then Enter | Select the labelled element and click it |
 | `;` | Label everything; type a label to click |
 | `text;label` | Label only what matches *text* |
 | UPPERCASE label | Right-click by label |

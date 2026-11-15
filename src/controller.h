@@ -54,7 +54,9 @@ public:
     int count() const { return m_model.rowCount(); }
     int total() const { return int(m_elements.size()); }
     bool hintMode() const { return m_parsed.hintMode; }
-    QString hintTyped() const { return m_parsed.hint; }
+    // The label typed so far: after ';', or the search itself when it could
+    // be a label, so the letters already typed fade on matching labels.
+    QString hintTyped() const;
     QString searchText() const { return m_parsed.search.trimmed(); }
     bool hintsReady() const { return !m_scanner.running(); }
     QStringList inaccessible() const { return m_inaccessible; }

@@ -51,5 +51,7 @@
   "Toggle": "Kontakt",
   "UPPERCASE label": "STORE BOGSTAVER",
   "Window": "Vindue",
-  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 blev åbnet, før tilgængelighed blev slået til. Luk den helt, og åbn den igen."
+  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 blev åbnet, før tilgængelighed blev slået til. Luk den helt, og åbn den igen.",
+  "label, Enter": "etiket, Enter",
+  "Select a labelled element, then click it": "Vælg et element via dets etiket, og klik på det"
 }

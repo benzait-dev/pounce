@@ -84,7 +84,7 @@ Window {
                 required property real elementHeight
 
                 text: hint
-                typed: backend.hintMode ? backend.hintTyped.length : 0
+                typed: hint.startsWith(backend.hintTyped) ? backend.hintTyped.length : 0
                 selected: index === backend.selected
                 prominent: backend.hintMode
                 visible: backend.hintsReady && hint.length > 0

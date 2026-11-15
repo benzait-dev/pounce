@@ -6,6 +6,8 @@
 #include <QTemporaryDir>
 #include <QtTest>
 
+#include <algorithm>
+
 #include "atspi.h"
 #include "config.h"
 #include "controller.h"
@@ -128,7 +130,37 @@ private slots:
         QCOMPARE(ranked.size(), 3);
         QCOMPARE(elements[ranked[0].index].name, QString("Save"));
         QCOMPARE(elements[ranked[1].index].name, QString("Save As"));
-        QCOMPARE(ranked[0].hint, QString("a"));
+        // Labels follow reading order, not rank: "Save" is the second element.
+        QCOMPARE(ranked[0].hint, QString("s"));
+    }
+
+    void labelsStayPutWhileSearching() {
+        Elements elements;
+        for (int i = 0; i < 30; ++i)
+            elements.append(element(QStringLiteral("Item %1").arg(i), i));
+        elements[17].name = "Save";
+        const auto all = Ranker::rank(elements, "", "asdf");
+        const auto narrowed = Ranker::rank(elements, "save", "asdf");
+        QCOMPARE(narrowed.size(), 1);
+        QCOMPARE(narrowed[0].hint, all[17].hint);
+    }
+
+    void typingALabelInTheSearchSelectsIt() {
+        Elements elements;
+        for (int i = 0; i < 30; ++i)
+            elements.append(element(QStringLiteral("Item %1").arg(i), i));
+        const QString label = Ranker::rank(elements, "", "asdf")[22].hint;
+        QCOMPARE(label.size(), 3);
+        // Upper or lower case, the labelled element comes first.
+        auto ranked = Ranker::rank(elements, label.toUpper(), "asdf", {}, 400, true);
+        QCOMPARE(ranked[0].index, 22);
+        // Half a label keeps every element it could still reach.
+        ranked = Ranker::rank(elements, label.left(2), "asdf", {}, 400, true);
+        QVERIFY(std::any_of(ranked.cbegin(), ranked.cend(), [](const Ranker::Ranked &r) { return r.index == 22; }));
+        // Without label matching it's only a text search.
+        QVERIFY(Ranker::rank(elements, label, "asdf").isEmpty());
+        QVERIFY(!Ranker::looksLikeLabel("save", "asdf"));
+        QVERIFY(Ranker::looksLikeLabel(" SD ", "asdf"));
     }
 
     void emptyQueryKeepsReadingOrderAndUnnamed() {

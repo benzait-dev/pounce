@@ -51,5 +51,7 @@
   "Toggle": "开关",
   "UPPERCASE label": "大写标签",
   "Window": "窗口",
-  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 在开启辅助功能之前就已打开。请完全退出后重新打开。"
+  "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 在开启辅助功能之前就已打开。请完全退出后重新打开。",
+  "label, Enter": "标签, Enter",
+  "Select a labelled element, then click it": "按标签选中元素，然后点击"
 }
