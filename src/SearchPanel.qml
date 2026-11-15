@@ -8,7 +8,10 @@ Rectangle {
     function focusField() { field.forceActiveFocus() }
 
     readonly property int rowHeight: 38
-    readonly property int visibleRows: Math.min(8, list.count)
+    // Labelling everything is about the screen, not the list, so the list
+    // folds away until there's text to search for.
+    readonly property bool listShown: !(backend.hintMode && backend.searchText.length === 0)
+    readonly property int visibleRows: listShown ? Math.min(8, list.count) : 0
     readonly property bool helpVisible: backend.query === "?"
 
     implicitHeight: column.implicitHeight + 2
@@ -146,14 +149,14 @@ Rectangle {
             Layout.fillWidth: true
             implicitHeight: 1
             color: Qt.alpha(theme.foreground, 0.08)
-            visible: list.count > 0 || panel.helpVisible
+            visible: (list.count > 0 && panel.listShown) || panel.helpVisible
         }
 
         ListView {
             id: list
             Layout.fillWidth: true
             implicitHeight: panel.visibleRows * panel.rowHeight
-            visible: !panel.helpVisible && count > 0
+            visible: !panel.helpVisible && count > 0 && panel.listShown
             clip: true
             interactive: false
             model: backend.results
@@ -226,7 +229,9 @@ Rectangle {
                     spacing: 14
 
                     Text {
-                        text: backend.scanning
+                        text: panel.helpVisible
+                              ? qsTr("Esc closes, Backspace returns to the search")
+                              : backend.scanning
                               ? qsTr("Reading the screen…")
                               : backend.total === 0
                                 ? qsTr("Nothing to click here")

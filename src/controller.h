@@ -29,12 +29,14 @@ class Controller : public QObject {
     Q_PROPERTY(int total READ total NOTIFY resultsChanged)
     Q_PROPERTY(bool hintMode READ hintMode NOTIFY resultsChanged)
     Q_PROPERTY(QString hintTyped READ hintTyped NOTIFY resultsChanged)
+    Q_PROPERTY(QString searchText READ searchText NOTIFY resultsChanged)
     Q_PROPERTY(bool hintsReady READ hintsReady NOTIFY resultsChanged)
     Q_PROPERTY(QStringList inaccessible READ inaccessible NOTIFY statusChanged)
     Q_PROPERTY(QString error READ error NOTIFY statusChanged)
     Q_PROPERTY(qint64 scanMilliseconds READ scanMilliseconds NOTIFY statusChanged)
     Q_PROPERTY(double dim READ dim NOTIFY openChanged)
     Q_PROPERTY(QString focusedMonitor READ focusedMonitor NOTIFY openChanged)
+    Q_PROPERTY(int panelSlot READ panelSlot NOTIFY panelSlotChanged)
     Q_PROPERTY(QObject *results READ results CONSTANT)
 
 public:
@@ -52,6 +54,7 @@ public:
     int total() const { return int(m_elements.size()); }
     bool hintMode() const { return m_parsed.hintMode; }
     QString hintTyped() const { return m_parsed.hint; }
+    QString searchText() const { return m_parsed.search.trimmed(); }
     bool hintsReady() const { return !m_scanner.running(); }
     QStringList inaccessible() const { return m_inaccessible; }
     QString error() const { return m_error; }
@@ -59,8 +62,17 @@ public:
     double dim() const { return m_config.dim; }
     QString focusedMonitor() const { return m_focusedMonitor; }
     QObject *results() { return &m_model; }
+    // Where the search panel sits: 0 near the top, 1 in the middle, 2 near
+    // the bottom of the focused monitor, whichever covers the fewest
+    // elements.
+    int panelSlot() const { return m_panelSlot; }
+    static int choosePanelSlot(const Elements &elements, const QRectF &monitor);
 
     void setAccent(const QString &accent) { m_model.setAccent(accent); }
+
+    // Shows a fixed set of elements without scanning, for screenshots and
+    // the offscreen interaction tests.
+    void preview(const Elements &elements, const QString &query = {});
 
     Q_INVOKABLE void activate(int row, const QString &mode = "click");
     Q_INVOKABLE void activateSelected(const QString &mode = "click");
@@ -82,11 +94,13 @@ signals:
     void selectedChanged();
     void resultsChanged();
     void statusChanged();
+    void panelSlotChanged();
 
 private:
     void startScan();
     void refresh();
     void scanned(const ScanReport &report);
+    void placePanel();
 
     Config m_config;
     Config::Scope m_scope = Config::Scope::Window;
@@ -105,4 +119,5 @@ private:
     QStringList m_inaccessible;
     QString m_error;
     qint64 m_scanMilliseconds = 0;
+    int m_panelSlot = 0;
 };

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#FFD60A"/>
+  <!-- A pointer landing on a hint label. -->
+  <rect x="9" y="11" width="22" height="15" rx="3" fill="#111"/>
+  <text x="20" y="22.5" font-family="monospace" font-size="11" font-weight="700" fill="#FFD60A" text-anchor="middle">SD</text>
+  <path d="M27 24 L27 52 L34 45 L39 56 L44 53.5 L39 43 L48 42 Z" fill="#111" stroke="#FFD60A" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>

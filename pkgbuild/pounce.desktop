@@ -1,0 +1,22 @@
+[Desktop Entry]
+Type=Application
+Name=Pounce
+Comment=Click anything on screen from the keyboard
+Comment[da]=Klik på alt på skærmen fra tastaturet
+Comment[de]=Alles auf dem Bildschirm per Tastatur anklicken
+Comment[es_MX]=Haz clic en cualquier cosa de la pantalla desde el teclado
+Comment[fr]=Cliquez sur tout ce qui est à l’écran depuis le clavier
+Comment[it]=Fai clic su qualsiasi cosa sullo schermo dalla tastiera
+Comment[ja]=画面上のあらゆるものをキーボードからクリック
+Comment[nl]=Klik op alles op het scherm met het toetsenbord
+Comment[pl]=Klikaj wszystko na ekranie z klawiatury
+Comment[pt_BR]=Clique em qualquer coisa na tela pelo teclado
+Comment[sv]=Klicka på allt på skärmen från tangentbordet
+Comment[zh_CN]=用键盘点击屏幕上的任何东西
+Exec=pounce
+Icon=pounce
+Terminal=false
+Categories=Utility;Accessibility;
+Keywords=click;keyboard;hints;shortcat;vimium;accessibility;
+StartupWMClass=pounce
+NoDisplay=false

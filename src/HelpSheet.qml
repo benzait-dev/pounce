@@ -40,7 +40,7 @@ Item {
                 implicitHeight: Math.max(keys.implicitHeight, meaning.implicitHeight)
                 Text {
                     id: keys
-                    width: 170
+                    width: 220
                     text: modelData[0]
                     font.family: "monospace"
                     font.pixelSize: 12

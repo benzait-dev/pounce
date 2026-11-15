@@ -103,7 +103,10 @@ Window {
             id: panel
             visible: root.primary
             anchors.horizontalCenter: parent.horizontalCenter
-            y: Math.round(parent.height * 0.14)
+            y: Math.round(backend.panelSlot === 0 ? parent.height * 0.12
+                          : backend.panelSlot === 1 ? (parent.height - height) / 2
+                          : parent.height * 0.92 - height)
+            Behavior on y { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
             width: Math.min(700, parent.width - 32)
             z: 10
 

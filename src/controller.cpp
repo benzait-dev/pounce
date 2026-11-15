@@ -27,6 +27,8 @@ void Controller::show(bool hints) {
     m_model.set({}, {});
     m_error.clear();
     m_inaccessible.clear();
+    m_panelSlot = 0;
+    emit panelSlotChanged();
 
     const bool wasOpen = m_open;
     m_open = true;
@@ -97,6 +99,7 @@ void Controller::scanned(const ScanReport &report) {
         m_error = tr("Accessibility is off, so apps aren't sharing their buttons. Run pounce setup.");
     emit scanningChanged();
     emit statusChanged();
+    placePanel();
     refresh();
 
     // A label typed while results were still arriving acts now.
@@ -206,4 +209,57 @@ void Controller::activate(int row, const QString &modeName) {
                                      outcome.error});
         }
     });
+}
+
+void Controller::preview(const Elements &elements, const QString &query) {
+    m_scanner.cancel();
+    m_elements = elements;
+    m_inaccessible.clear();
+    m_error.clear();
+    m_query = query;
+    m_parsed = Ranker::Query::parse(query);
+    m_selected = 0;
+    const bool wasOpen = m_open;
+    m_open = true;
+    emit queryChanged();
+    emit statusChanged();
+    emit scanningChanged();
+    placePanel();
+    refresh();
+    if (!wasOpen)
+        emit openChanged();
+}
+
+int Controller::choosePanelSlot(const Elements &elements, const QRectF &monitor) {
+    // The panel's footprint at its tallest, in the three places it can go;
+    // these match the positions Overlay.qml uses.
+    const double width = std::min(700.0, monitor.width() - 32), height = 420;
+    const double x = monitor.x() + (monitor.width() - width) / 2;
+    const QList<QRectF> places{
+        QRectF(x, monitor.y() + monitor.height() * 0.12, width, height),
+        QRectF(x, monitor.y() + (monitor.height() - height) / 2, width, height),
+        QRectF(x, monitor.y() + monitor.height() * 0.92 - height, width, height),
+    };
+    QList<double> covered(places.size(), 0);
+    for (const Element &element : elements)
+        for (int i = 0; i < places.size(); ++i)
+            if (places[i].intersects(element.rect))
+                covered[i] += element.inActiveWindow ? 2 : 1;
+    // The top is where people look first, so it stays unless another place
+    // hides clearly less.
+    int best = 0;
+    for (int i = 1; i < places.size(); ++i)
+        if (covered[i] + 1 < covered[best])
+            best = i;
+    return best;
+}
+
+void Controller::placePanel() {
+    const HyprMonitor *monitor = m_state.focusedMonitor();
+    const QRectF rect = monitor ? monitor->rect : QRectF(0, 0, 1920, 1080);
+    const int slot = choosePanelSlot(m_elements, rect);
+    if (slot != m_panelSlot) {
+        m_panelSlot = slot;
+        emit panelSlotChanged();
+    }
 }
