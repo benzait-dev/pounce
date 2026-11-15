@@ -55,6 +55,7 @@ void Controller::close() {
     if (!m_open)
         return;
     m_open = false;
+    setPeeking(false);
     emit openChanged();
     emit scanningChanged();
 }
@@ -188,6 +189,23 @@ void Controller::setSelected(int row) {
 QRectF Controller::selectedRect() const {
     const Element *element = m_model.element(m_selected);
     return element ? element->rect : QRectF();
+}
+
+QString Controller::selectedLabel() const {
+    const Element *element = m_model.element(m_selected);
+    return element ? element->label() : QString();
+}
+
+QString Controller::selectedRole() const {
+    const Element *element = m_model.element(m_selected);
+    return element ? element->roleName : QString();
+}
+
+void Controller::setPeeking(bool peeking) {
+    if (peeking == m_peeking)
+        return;
+    m_peeking = peeking;
+    emit peekingChanged();
 }
 
 void Controller::move(int delta) {

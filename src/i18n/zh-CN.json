@@ -53,5 +53,9 @@
   "Window": "窗口",
   "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 在开启辅助功能之前就已打开。请完全退出后重新打开。",
   "label, Enter": "标签, Enter",
-  "Select a labelled element, then click it": "按标签选中元素，然后点击"
+  "Select a labelled element, then click it": "按标签选中元素，然后点击",
+  "Type a label": "输入标签",
+  "Show the full list of matches": "显示完整的匹配列表",
+  "Hold Alt": "按住 Alt",
+  "See the screen without pounce": "隐藏 pounce 查看屏幕"
 }

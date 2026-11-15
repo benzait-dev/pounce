@@ -53,5 +53,9 @@
   "Window": "Janela",
   "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 foi aberto antes de a acessibilidade ser ativada. Feche-o por completo e abra-o novamente.",
   "label, Enter": "rótulo, Enter",
-  "Select a labelled element, then click it": "Selecione um elemento pelo rótulo e clique nele"
+  "Select a labelled element, then click it": "Selecione um elemento pelo rótulo e clique nele",
+  "Type a label": "Digite um rótulo",
+  "Show the full list of matches": "Mostrar a lista completa de resultados",
+  "Hold Alt": "Segure Alt",
+  "See the screen without pounce": "Ver a tela sem o pounce"
 }

@@ -53,5 +53,9 @@
   "Window": "Venster",
   "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 is geopend voordat toegankelijkheid aanstond. Sluit het volledig af en open het opnieuw.",
   "label, Enter": "label, Enter",
-  "Select a labelled element, then click it": "Selecteer een element via zijn label en klik erop"
+  "Select a labelled element, then click it": "Selecteer een element via zijn label en klik erop",
+  "Type a label": "Typ een label",
+  "Show the full list of matches": "Toon de volledige lijst met resultaten",
+  "Hold Alt": "Alt ingedrukt houden",
+  "See the screen without pounce": "Het scherm zien zonder pounce"
 }

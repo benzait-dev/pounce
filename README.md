@@ -32,9 +32,12 @@ and Hyprland.
 - **Fast.** pounce stays resident and reads the accessibility tree with
   hundreds of D-Bus requests in flight at once. A typical window is read in
   5–40 ms, and results stream in while a large page is still being read.
-- **Stays out of the way.** The search panel moves to whichever part of the
-  screen hides the fewest elements, and fades when the selected element is
-  behind it.
+- **Stays out of the way.** The search is one slim line showing what Enter
+  would click; the full list of matches opens only when asked for. Label
+  mode has no panel at all, just a small chip in the corner. The bar moves to
+  whichever part of the screen hides the fewest elements, fades when the
+  selected element is behind it, and holding Alt hides everything until it's
+  let go.
 - **Looks like Omarchy.** It follows the theme's accent, backgrounds, and
   Hyprland's window rounding live, and follows the Omarchy language
   (11 languages so far).
@@ -51,7 +54,9 @@ and Hyprland.
 | Ctrl+Enter | Double-click |
 | Ctrl+Shift+Enter | Middle-click (open a link in a new tab) |
 | Alt+Enter | Move the pointer there |
+| ↓ or Ctrl+L | Show the full list of matches (Esc folds it) |
 | ↑ ↓, Tab, Ctrl+N/P, Ctrl+J/K | Move the selection |
+| Hold Alt | See the screen without pounce |
 | Alt+1…9 | Click result 1 to 9 |
 | A label, then Enter | Select the labelled element and click it |
 | `;` | Label everything; type a label to click |

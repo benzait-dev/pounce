@@ -32,7 +32,9 @@ Window {
         states: State {
             name: "shown"
             when: root.visible
-            PropertyChanges { target: content; opacity: 1 }
+            // Hold Alt to see the screen as it is. Only the opacity drops,
+            // so the field keeps the keyboard and letting go brings it back.
+            PropertyChanges { target: content; opacity: backend.peeking ? 0 : 1 }
         }
         transitions: Transition {
             to: "shown"
@@ -103,11 +105,14 @@ Window {
             id: panel
             visible: root.primary
             anchors.horizontalCenter: parent.horizontalCenter
-            y: Math.round(backend.panelSlot === 0 ? parent.height * 0.12
-                          : backend.panelSlot === 1 ? (parent.height - height) / 2
-                          : parent.height * 0.92 - height)
-            Behavior on y { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-            width: Math.min(700, parent.width - 32)
+            // With only labels to type, the panel moves off screen rather
+            // than hiding, so its field keeps the keyboard.
+            y: labelsOnly ? -height - 40
+               : Math.round(backend.panelSlot === 0 ? parent.height * 0.12
+                            : backend.panelSlot === 1 ? (parent.height - height) / 2
+                            : parent.height * 0.92 - height)
+            Behavior on y { enabled: !panel.labelsOnly; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+            width: Math.min(640, parent.width - 32)
             z: 10
 
             // Step out of the way of what's selected, so the ring is never
@@ -118,6 +123,45 @@ Window {
                 && target.y - root.originY < y + height && target.y - root.originY + target.height > y
             opacity: covering ? 0.28 : 1
             Behavior on opacity { NumberAnimation { duration: 120 } }
+        }
+
+        // Label mode's stand-in for the panel: what's been typed, in a
+        // corner.
+        Rectangle {
+            id: labelChip
+            visible: root.primary && panel.labelsOnly
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: 16
+            z: 10
+            width: chipRow.implicitWidth + 20
+            height: 30
+            radius: Math.min(6, theme.radius)
+            color: theme.background
+            border.color: Qt.alpha(theme.foreground, 0.12)
+            border.width: 1
+
+            Row {
+                id: chipRow
+                anchors.centerIn: parent
+                spacing: 8
+                Text {
+                    text: ""
+                    color: theme.accent
+                    font.pixelSize: 13
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    text: backend.scanning ? qsTr("Reading the screen…")
+                          : backend.hintTyped.length > 0 ? backend.hintTyped.toUpperCase()
+                          : qsTr("Type a label")
+                    color: backend.hintTyped.length > 0 ? theme.foreground : theme.muted
+                    font.pixelSize: backend.hintTyped.length > 0 ? 14 : 12
+                    font.family: backend.hintTyped.length > 0 ? "monospace" : Qt.application.font.family
+                    font.bold: backend.hintTyped.length > 0
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
         }
     }
 

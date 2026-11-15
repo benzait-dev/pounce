@@ -25,6 +25,12 @@ class Controller : public QObject {
     Q_PROPERTY(QString scope READ scope NOTIFY scopeChanged)
     Q_PROPERTY(int selected READ selected WRITE setSelected NOTIFY selectedChanged)
     Q_PROPERTY(QRectF selectedRect READ selectedRect NOTIFY selectedChanged)
+    // What the selection is, for the one-line bar: "Settings" and "Button".
+    Q_PROPERTY(QString selectedLabel READ selectedLabel NOTIFY selectedChanged)
+    Q_PROPERTY(QString selectedRole READ selectedRole NOTIFY selectedChanged)
+    // True while Alt is held on its own: everything pounce draws steps aside
+    // so the screen underneath can be read.
+    Q_PROPERTY(bool peeking READ peeking WRITE setPeeking NOTIFY peekingChanged)
     Q_PROPERTY(int count READ count NOTIFY resultsChanged)
     Q_PROPERTY(int total READ total NOTIFY resultsChanged)
     Q_PROPERTY(bool hintMode READ hintMode NOTIFY resultsChanged)
@@ -51,6 +57,10 @@ public:
     int selected() const { return m_selected; }
     void setSelected(int row);
     QRectF selectedRect() const;
+    QString selectedLabel() const;
+    QString selectedRole() const;
+    bool peeking() const { return m_peeking; }
+    void setPeeking(bool peeking);
     int count() const { return m_model.rowCount(); }
     int total() const { return int(m_elements.size()); }
     bool hintMode() const { return m_parsed.hintMode; }
@@ -96,6 +106,7 @@ signals:
     void scanningChanged();
     void scopeChanged();
     void selectedChanged();
+    void peekingChanged();
     void resultsChanged();
     void statusChanged();
     void panelSlotChanged();
@@ -122,6 +133,7 @@ private:
     QString m_focusedMonitor;
     QStringList m_inaccessible;
     QStringList m_restart;
+    bool m_peeking = false;
     QString m_error;
     qint64 m_scanMilliseconds = 0;
     int m_panelSlot = 0;

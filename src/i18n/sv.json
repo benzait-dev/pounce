@@ -53,5 +53,9 @@
   "Window": "Fönster",
   "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 öppnades innan tillgänglighet slogs på. Avsluta appen helt och öppna den igen.",
   "label, Enter": "etikett, Enter",
-  "Select a labelled element, then click it": "Välj ett element via dess etikett och klicka på det"
+  "Select a labelled element, then click it": "Välj ett element via dess etikett och klicka på det",
+  "Type a label": "Skriv en etikett",
+  "Show the full list of matches": "Visa hela listan med träffar",
+  "Hold Alt": "Håll ned Alt",
+  "See the screen without pounce": "Se skärmen utan pounce"
 }

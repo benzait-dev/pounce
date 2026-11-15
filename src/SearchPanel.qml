@@ -1,18 +1,27 @@
 import QtQuick
 import QtQuick.Layouts
 
-// The search field, the ranked results, and a line saying what's going on.
+// The search field as a single line: what's typed, what Enter would click,
+// and how many match. The labels on screen already show every match, so the
+// full list only opens on request (Down or Ctrl+L) and folds again as soon
+// as the search changes.
 Rectangle {
     id: panel
 
-    function focusField() { field.forceActiveFocus() }
+    function focusField() {
+        listOpen = false
+        field.forceActiveFocus()
+    }
 
     readonly property int rowHeight: 38
-    // Labelling everything is about the screen, not the list, so the list
-    // folds away until there's text to search for.
-    readonly property bool listShown: !(backend.hintMode && backend.searchText.length === 0)
-    readonly property int visibleRows: listShown ? Math.min(8, list.count) : 0
+    property bool listOpen: false
     readonly property bool helpVisible: backend.query === "?"
+    readonly property bool hasMessage: backend.error.length > 0 || backend.inaccessible.length > 0
+    // Labelling everything is about the screen: with nothing searched for
+    // and nothing to report, the panel steps aside for a small chip.
+    readonly property bool labelsOnly: backend.hintMode && backend.searchText.length === 0 && !hasMessage
+    readonly property bool listShown: listOpen && !helpVisible && list.count > 0
+    readonly property int visibleRows: listShown ? Math.min(8, list.count) : 0
 
     implicitHeight: column.implicitHeight + 2
     height: implicitHeight
@@ -24,6 +33,14 @@ Rectangle {
     // Clicks on the panel stay on the panel.
     MouseArea { anchors.fill: parent; onPressed: (mouse) => mouse.accepted = true }
 
+    // Alt held on its own, briefly, peeks through. A short delay keeps
+    // Alt+Enter and Alt+1…9 from flickering the screen.
+    Timer {
+        id: peekTimer
+        interval: 160
+        onTriggered: backend.peeking = true
+    }
+
     ColumnLayout {
         id: column
         anchors.left: parent.left
@@ -32,47 +49,67 @@ Rectangle {
         anchors.margins: 1
         spacing: 0
 
-        // The field.
+        // The bar.
         Item {
             Layout.fillWidth: true
-            implicitHeight: 56
+            implicitHeight: 44
 
             Text {
                 id: searchGlyph
                 anchors.left: parent.left
-                anchors.leftMargin: 18
+                anchors.leftMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
-                text: backend.hintMode ? "" : ""
-                font.pixelSize: 17
+                text: backend.hintMode ? "" : ""
+                font.pixelSize: 15
                 color: backend.hintMode ? theme.accent : theme.muted
             }
 
             TextInput {
                 id: field
                 anchors.left: searchGlyph.right
-                anchors.leftMargin: 14
-                anchors.right: scopeChip.left
-                anchors.rightMargin: 12
+                anchors.leftMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 19
+                // As wide as the text, so what Enter would click sits right
+                // after it; the placeholder needs room of its own.
+                width: Math.min(parent.width * 0.55,
+                                Math.max(contentWidth + 4, text.length === 0 ? placeholder.implicitWidth : 0))
+                font.pixelSize: 17
                 color: theme.foreground
                 selectionColor: theme.selection
                 selectedTextColor: theme.foreground
                 clip: true
                 text: backend.query
-                onTextEdited: backend.query = text
+                onTextEdited: {
+                    panel.listOpen = false
+                    backend.query = text
+                }
                 focus: true
 
                 Text {
-                    anchors.fill: parent
+                    id: placeholder
+                    anchors.verticalCenter: parent.verticalCenter
                     visible: field.text.length === 0
                     text: qsTr("Search buttons, links, and fields…")
                     color: theme.muted
                     font: field.font
-                    elide: Text.ElideRight
+                }
+
+                Keys.onReleased: (event) => {
+                    if (event.key === Qt.Key_Alt) {
+                        peekTimer.stop()
+                        backend.peeking = false
+                    }
                 }
 
                 Keys.onPressed: (event) => {
+                    if (event.key === Qt.Key_Alt) {
+                        if (!event.isAutoRepeat)
+                            peekTimer.start()
+                        return
+                    }
+                    peekTimer.stop()
+                    backend.peeking = false
+
                     const ctrl = event.modifiers & Qt.ControlModifier
                     const shift = event.modifiers & Qt.ShiftModifier
                     const alt = event.modifiers & Qt.AltModifier
@@ -80,7 +117,14 @@ Rectangle {
                         backend.activateSelected(ctrl && shift ? "middle" : shift ? "right" : ctrl ? "double"
                                                  : alt ? "hover" : "click")
                     } else if (event.key === Qt.Key_Escape) {
-                        backend.close()
+                        if (panel.listOpen)
+                            panel.listOpen = false
+                        else
+                            backend.close()
+                    } else if (ctrl && event.key === Qt.Key_L) {
+                        panel.listOpen = !panel.listOpen
+                    } else if (event.key === Qt.Key_Down && !panel.listOpen && !panel.labelsOnly) {
+                        panel.listOpen = true
                     } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || (ctrl && event.key === Qt.Key_N)
                                || (ctrl && event.key === Qt.Key_J)) {
                         backend.move(1)
@@ -108,14 +152,48 @@ Rectangle {
                 }
             }
 
+            // What Enter would click, so the list isn't needed to know.
+            Text {
+                id: target
+                anchors.left: field.right
+                anchors.leftMargin: 10
+                anchors.right: count.left
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                visible: backend.searchText.length > 0 && backend.count > 0 && !panel.helpVisible
+                text: "→ " + backend.selectedLabel
+                      + (backend.selectedRole.length > 0 ? "  <font color=\"" + theme.muted + "\">" + backend.selectedRole + "</font>" : "")
+                textFormat: Text.StyledText
+                elide: Text.ElideRight
+                color: theme.foreground
+                font.pixelSize: 13
+            }
+
+            Text {
+                id: count
+                anchors.right: scopeChip.left
+                anchors.rightMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                visible: !panel.helpVisible
+                text: backend.scanning
+                      ? qsTr("Reading the screen…")
+                      : backend.total === 0
+                        ? qsTr("Nothing to click here")
+                        : backend.count === 0
+                          ? qsTr("No matches")
+                          : qsTr("%1 of %n", "", backend.total).arg(backend.count)
+                color: theme.muted
+                font.pixelSize: 12
+            }
+
             // Window or Screen; Ctrl+S or a click switches.
             Rectangle {
                 id: scopeChip
                 anchors.right: parent.right
-                anchors.rightMargin: 14
+                anchors.rightMargin: 9
                 anchors.verticalCenter: parent.verticalCenter
-                height: 26
-                width: scopeText.implicitWidth + 20
+                height: 24
+                width: scopeText.implicitWidth + 16
                 radius: Math.min(4, theme.radius)
                 color: theme.surface
 
@@ -123,7 +201,7 @@ Rectangle {
                     id: scopeText
                     anchors.centerIn: parent
                     text: backend.scope === "screen" ? qsTr("Screen") : qsTr("Window")
-                    font.pixelSize: 12
+                    font.pixelSize: 11
                     color: theme.foreground
                 }
                 MouseArea { anchors.fill: parent; onClicked: backend.toggleScope() }
@@ -149,14 +227,14 @@ Rectangle {
             Layout.fillWidth: true
             implicitHeight: 1
             color: Qt.alpha(theme.foreground, 0.08)
-            visible: (list.count > 0 && panel.listShown) || panel.helpVisible
+            visible: panel.listShown || panel.helpVisible || panel.hasMessage
         }
 
         ListView {
             id: list
             Layout.fillWidth: true
             implicitHeight: panel.visibleRows * panel.rowHeight
-            visible: !panel.helpVisible && count > 0 && panel.listShown
+            visible: panel.listShown
             clip: true
             interactive: false
             model: backend.results
@@ -180,10 +258,45 @@ Rectangle {
             visible: panel.helpVisible
         }
 
-        // What's going on: how many, what's missing, and how to get it.
+        // Only when something's wrong: what's missing, and how to get it.
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 14
+            Layout.rightMargin: 14
+            Layout.topMargin: 8
+            Layout.bottomMargin: 9
+            visible: panel.hasMessage
+            spacing: 4
+
+            Text {
+                Layout.fillWidth: true
+                visible: backend.error.length > 0
+                text: backend.error
+                wrapMode: Text.WordWrap
+                color: "#f7768e"
+                font.pixelSize: 12
+            }
+
+            Text {
+                Layout.fillWidth: true
+                visible: backend.inaccessible.length > 0 && backend.error.length === 0
+                text: backend.restart.length > 0
+                      ? qsTr("%1 was opened before accessibility was switched on. Quit it completely and open it again.")
+                            .arg(backend.restart.join(", "))
+                      : qsTr("%1 isn't sharing its interface. Run %2, then restart it.")
+                            .arg(backend.inaccessible.join(", ")).arg("<b>pounce setup</b>")
+                textFormat: Text.StyledText
+                wrapMode: Text.WordWrap
+                color: theme.muted
+                font.pixelSize: 12
+            }
+        }
+
+        // Key reminders, with the list or the help open.
         Rectangle {
             Layout.fillWidth: true
-            implicitHeight: statusColumn.implicitHeight + 16
+            implicitHeight: 30
+            visible: panel.listShown || panel.helpVisible
             color: theme.surface
             radius: theme.radius
             Rectangle {
@@ -195,70 +308,30 @@ Rectangle {
                 color: parent.color
             }
 
-            ColumnLayout {
-                id: statusColumn
-                anchors.left: parent.left
+            Row {
                 anchors.right: parent.right
+                anchors.rightMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
-                spacing: 4
-
+                spacing: 14
                 Text {
-                    Layout.fillWidth: true
-                    visible: backend.error.length > 0
-                    text: backend.error
-                    wrapMode: Text.WordWrap
-                    color: "#f7768e"
-                    font.pixelSize: 12
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    visible: backend.inaccessible.length > 0 && backend.error.length === 0
-                    text: backend.restart.length > 0
-                          ? qsTr("%1 was opened before accessibility was switched on. Quit it completely and open it again.")
-                                .arg(backend.restart.join(", "))
-                          : qsTr("%1 isn't sharing its interface. Run %2, then restart it.")
-                                .arg(backend.inaccessible.join(", ")).arg("<b>pounce setup</b>")
-                    textFormat: Text.StyledText
-                    wrapMode: Text.WordWrap
+                    visible: panel.helpVisible
+                    text: qsTr("Esc closes, Backspace returns to the search")
                     color: theme.muted
                     font.pixelSize: 12
                 }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 14
-
-                    Text {
-                        text: panel.helpVisible
-                              ? qsTr("Esc closes, Backspace returns to the search")
-                              : backend.scanning
-                              ? qsTr("Reading the screen…")
-                              : backend.total === 0
-                                ? qsTr("Nothing to click here")
-                                : backend.count === 0
-                                  ? qsTr("No matches")
-                                  : qsTr("%1 of %n", "", backend.total).arg(backend.count)
-                        color: theme.muted
-                        font.pixelSize: 12
-                    }
-                    Item { Layout.fillWidth: true }
-                    Repeater {
-                        model: [
-                            ["↵", qsTr("click")],
-                            ["⇧↵", qsTr("right")],
-                            ["⌃↵", qsTr("double")],
-                            [";", qsTr("labels")],
-                            ["?", qsTr("help")],
-                        ]
-                        delegate: Row {
-                            required property var modelData
-                            spacing: 5
-                            Text { text: modelData[0]; color: theme.foreground; font.pixelSize: 12; font.family: "monospace" }
-                            Text { text: modelData[1]; color: theme.muted; font.pixelSize: 12 }
-                        }
+                Repeater {
+                    model: panel.helpVisible ? [] : [
+                        ["↵", qsTr("click")],
+                        ["⇧↵", qsTr("right")],
+                        ["⌃↵", qsTr("double")],
+                        [";", qsTr("labels")],
+                        ["?", qsTr("help")],
+                    ]
+                    delegate: Row {
+                        required property var modelData
+                        spacing: 5
+                        Text { text: modelData[0]; color: theme.foreground; font.pixelSize: 12; font.family: "monospace" }
+                        Text { text: modelData[1]; color: theme.muted; font.pixelSize: 12 }
                     }
                 }
             }

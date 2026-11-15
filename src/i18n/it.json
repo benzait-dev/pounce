@@ -53,5 +53,9 @@
   "Window": "Finestra",
   "%1 was opened before accessibility was switched on. Quit it completely and open it again.": "%1 è stato aperto prima che l’accessibilità fosse attivata. Chiudilo del tutto e riaprilo.",
   "label, Enter": "etichetta, Invio",
-  "Select a labelled element, then click it": "Seleziona un elemento dalla sua etichetta, poi fai clic"
+  "Select a labelled element, then click it": "Seleziona un elemento dalla sua etichetta, poi fai clic",
+  "Type a label": "Digita un’etichetta",
+  "Show the full list of matches": "Mostra l’elenco completo dei risultati",
+  "Hold Alt": "Tieni premuto Alt",
+  "See the screen without pounce": "Vedi lo schermo senza pounce"
 }
